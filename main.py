@@ -7,16 +7,13 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, Union 
 from fastapi.middleware.cors import CORSMiddleware
-# The incorrect import that caused the ImportError is REMOVED:
-# from sklearn.exceptions import UserWarning 
-# We rely on the core logic fix (passing a DataFrame) to handle the warning.
-
 
 # --- Configuration and File Paths ---
 MODEL_PATH = "demand_prediction_rf_model.pkl"
 DATA_PATH = "vendor_daily_sales.csv"
 
 # --- Corrected Feature Mapping (55 features) ---
+# NOTE: This list MUST match the features the model was trained on.
 MODEL_FEATURE_COLUMNS = [
     'price_per_unit', 'stock', 'is_weekend', 'is_holiday', 'temperature_c',
     'precipitation_mm', 'market_footfall', 'competitor_price_per_unit', 'month',
@@ -38,15 +35,12 @@ MODEL_FEATURE_COLUMNS = [
 # --- Global Variables ---
 model = None
 historical_df = None
-# Stores averages by Day of Year (DOY) for date-specific features
 doy_averages_df = None
-# Stores averages by Item for item-specific features
 item_averages_df = None
-# Global fallback averages (calculated during startup)
 global_avg_dict: Dict[str, Any] = {}
 
 
-# --- Helper Functions (Omitted for brevity, assumed to be correct) ---
+# --- Helper Functions (Data Loading and Averaging) ---
 
 def load_historical_data():
     """Loads and preprocesses the historical sales data for lag calculations."""
@@ -102,7 +96,7 @@ def calculate_all_averages(df: pd.DataFrame):
 class PredictionInput(BaseModel):
     """
     Schema for the prediction request body. 
-    Numerical fields are now OPTIONAL (Union[float, None]) to allow user override, 
+    Numerical fields are OPTIONAL to allow user override, 
     falling back to historical averages if None is provided.
     """
     date: str  # YYYY-MM-DD format
@@ -140,7 +134,7 @@ app.add_middleware(
 )
 # -------------------------------
 
-# --- Feature Engineering Functions (The core logic) ---
+# --- Feature Engineering Function ---
 
 def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, doy_avg_df: pd.DataFrame, item_avg_df: pd.DataFrame, global_avg: Dict):
     """
@@ -148,7 +142,7 @@ def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, 
     using user inputs where available, and falling back to averages otherwise.
     """
 
-    input_df = pd.DataFrame([raw_data.model_dump(exclude_none=True)]) # exclude_none ensures only provided fields are kept initially
+    input_df = pd.DataFrame([raw_data.model_dump(exclude_none=True)])
     input_df['date'] = pd.to_datetime(input_df['date'])
 
     doy = input_df['date'].dt.dayofyear.iloc[0]
@@ -164,7 +158,7 @@ def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, 
         avg_comp_price = global_avg['competitor_price_per_unit']
         avg_stock = global_avg['stock']
 
-    # Apply Price/Stock: Use user input (from input_df if present) OR the item average
+    # Apply Price/Stock: Use user input OR the item average
     if 'price_per_unit' not in input_df.columns:
         input_df['price_per_unit'] = avg_price
     if 'competitor_price_per_unit' not in input_df.columns:
@@ -181,7 +175,7 @@ def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, 
         avg_holiday = lookup_doy['is_holiday'] 
         avg_footfall = lookup_doy['market_footfall'] 
     except IndexError:
-        print(f"Warning: Day of Year {doy} not found in historical data. Using global averages for weather/holiday/footfall.")
+        print(f"Warning: Day of Year {doy} not found. Using global averages for weather/holiday/footfall.")
         avg_temp = global_avg['temperature_c']
         avg_precip = global_avg['precipitation_mm']
         avg_holiday = global_avg['is_holiday']
@@ -191,7 +185,7 @@ def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, 
     if 'market_footfall' not in input_df.columns:
         input_df['market_footfall'] = avg_footfall
         
-    # Apply Weather/Holiday: These are ALWAYS auto-filled based on date, ignoring any hypothetical user input.
+    # Apply Weather/Holiday: These are ALWAYS auto-filled based on date.
     input_df['temperature_c'] = avg_temp
     input_df['precipitation_mm'] = avg_precip
     input_df['is_holiday'] = avg_holiday
@@ -214,7 +208,7 @@ def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, 
     combined_df = pd.concat([item_history, input_df], ignore_index=True)
     combined_df = combined_df.sort_values(by='date').drop_duplicates(subset=['date', 'item'], keep='last').reset_index(drop=True)
 
-    # 4. Time-based Features (same as before)
+    # 4. Time-based Features
     combined_df['month'] = combined_df['date'].dt.month
     combined_df['week'] = combined_df['date'].dt.isocalendar().week.astype(int)
     combined_df['day_of_month'] = combined_df['date'].dt.day
@@ -226,12 +220,12 @@ def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, 
     combined_df['month_sin'] = np.sin(2 * np.pi * combined_df['month'] / 12)
     combined_df['month_cos'] = np.cos(2 * np.pi * combined_df['month'] / 12)
     
-    # 5. Calculated and Boolean Features (using potentially user-provided values)
+    # 5. Calculated and Boolean Features
     combined_df['price_diff'] = combined_df['price_per_unit'] - combined_df['competitor_price_per_unit']
     combined_df['price_ratio'] = combined_df['price_per_unit'] / combined_df['competitor_price_per_unit']
     combined_df['is_cheaper'] = (combined_df['price_per_unit'] < combined_df['competitor_price_per_unit']).astype(int)
 
-    # Weather Flags (using DOY average values)
+    # Weather Flags
     combined_df['is_rainy'] = (combined_df['precipitation_mm'] > 0).astype(int)
     combined_df['is_heavy_rain'] = (combined_df['precipitation_mm'] >= 10).astype(int)
     combined_df['is_hot'] = (combined_df['temperature_c'] >= 28).astype(int)
@@ -246,7 +240,7 @@ def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, 
     combined_df['stock_ratio'] = combined_df['stock'] / max_stock 
     combined_df['footfall_ratio'] = combined_df['market_footfall'] / 1000 
 
-    # 6. Lag and Rolling Mean/Std Features (same as before)
+    # 6. Lag and Rolling Mean/Std Features
     for lag in [1, 2, 3, 7]:
         combined_df[f'units_sold_lag_{lag}'] = combined_df['units_sold'].shift(lag)
 
@@ -254,9 +248,10 @@ def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, 
         combined_df[f'units_sold_rolling_mean_{window}'] = combined_df['units_sold'].shift(1).rolling(window=window).mean()
         combined_df[f'units_sold_rolling_std_{window}'] = combined_df['units_sold'].shift(1).rolling(window=window).std().fillna(0)
 
+    # Fill NaNs created by lag/rolling features with 0 (since they are only NaNs for the newest/fewest dates)
     combined_df.fillna(0, inplace=True)
 
-    # 7. One-Hot Encoding (same as before)
+    # 7. One-Hot Encoding
     data_to_encode = combined_df.tail(1).copy()
     
     # Item OHE 
@@ -281,14 +276,14 @@ def engineer_features(raw_data: PredictionInput, historical_data: pd.DataFrame, 
 
     # 8. Final preparation
     final_feature_data = data_to_encode[MODEL_FEATURE_COLUMNS].tail(1)
-    # 9. Extract the Stock value used for this prediction (either user-supplied or fallback)
-    # We use .iloc[0] because final_feature_data is a single-row DataFrame
+    
+    # 9. Extract the Stock value used for this prediction
     stock_for_prediction = final_feature_data['stock'].iloc[0]
 
     return final_feature_data, stock_for_prediction
 
 
-# --- API Lifecycle and Endpoints (Omitted for brevity) ---
+# --- API Lifecycle and Endpoints ---
 
 @app.on_event("startup")
 async def load_assets():
@@ -302,30 +297,26 @@ async def load_assets():
         # Load historical data 
         historical_df = load_historical_data()
         if historical_df is not None:
-             print(f"Successfully loaded {len(historical_df)} historical records for feature engineering.")
-             
-             # Calculate all averages (DOY, Item, and Global)
-             doy_averages_df, item_averages_df, global_avg_dict = calculate_all_averages(historical_df)
-             
-             print("Successfully pre-calculated historical DOY, Item, and Global fallbacks.")
+            print(f"Successfully loaded {len(historical_df)} historical records for feature engineering.")
+            
+            # Calculate all averages (DOY, Item, and Global)
+            doy_averages_df, item_averages_df, global_avg_dict = calculate_all_averages(historical_df)
+            
+            print("Successfully pre-calculated historical DOY, Item, and Global fallbacks.")
 
     except FileNotFoundError as e:
         print(f"Error during startup: {e}")
+        # Use a generic filename for security/simplicity
         raise HTTPException(status_code=500, detail=f"Required file not found: {e.filename}")
     except Exception as e:
         print(f"An unexpected error occurred during startup: {e}")
         raise HTTPException(status_code=500, detail="Model or data loading failed.")
 
 
-# @app.get("/")
-# def read_root():
-#     """Simple health check endpoint."""
-#     return {"status": "ok", "model_loaded": model is not None, "data_available": historical_df is not None, "doy_averages_calculated": doy_averages_df is not None}
-
-
 @app.get("/", include_in_schema=False)
 def serve_index():
     """Serves the main HTML page (the frontend dashboard)."""
+    # Assumes index.html is in the same directory as main.py
     return FileResponse("index.html")
 
 @app.post("/predict", response_model=PredictionOutput)
@@ -341,10 +332,11 @@ def predict_demand(data: PredictionInput):
         feature_data, stock_level = engineer_features(data, historical_df, doy_averages_df, item_averages_df, global_avg_dict)
 
         # 2. Make Prediction (passing DataFrame with feature names)
+        # unconstrained_prediction is the Model's forecast of customer demand
         unconstrained_prediction = model.predict(feature_data)[0]
 
         # 3. CRITICAL BUSINESS LOGIC: Post-Prediction Cap
-        # Sales cannot exceed the available stock.
+        # The final sales amount is the minimum of demand and supply (stock level).
         final_prediction = min(float(unconstrained_prediction), float(stock_level))
         
         # 4. Ensure non-negative and round

@@ -59,6 +59,10 @@ The final prediction is capped by the available stock:
 
 $$\text{Final Units Sold} = \min(\text{Model's Unconstrained Demand}, \text{Available Stock})$$
 
+
+[Image of supply and demand curve intersection showing price and quantity equilibrium]
+
+
 This enables the vendor to operate the tool in two distinct, meaningful modes:
 
 | Mode | Stock Input | Output | Purpose |
@@ -70,20 +74,24 @@ This enables the vendor to operate the tool in two distinct, meaningful modes:
 
 ## 🚀 Deployment and Usage
 
-The entire application runs as a single FastAPI Web Service.
+The entire application runs as a single FastAPI Web Service, deployed on Render.
+
+### Live Application Link
+You can access the live, interactive dashboard here:
+**[https://demand-prediction-57ke.onrender.com](https://demand-prediction-57ke.onrender.com)**
 
 ### 1. Local Setup
 
-1.  **Install dependencies:** `pip install -r requirements.txt`
-2.  **Run the application:** `uvicorn main:app --reload`
-3.  **Access the dashboard:** `http://127.0.0.1:8000/`
+1.  **Install dependencies:** `pip install -r requirements.txt`
+2.  **Run the application:** `uvicorn main:app --reload`
+3.  **Access the dashboard:** `http://127.0.0.1:8000/`
 
 ### 2. Render Deployment
 
-1.  Configure a **single Render Web Service** pointing to your repository.
-2.  Set the **Root Directory** to blank (repository root).
-3.  **Build Command:** `pip install -r requirements.txt`
-4.  **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+1.  Configure a **single Render Web Service** pointing to your repository.
+2.  Set the **Root Directory** to blank (repository root).
+3.  **Build Command:** `pip install -r requirements.txt`
+4.  **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
 ### 3. Usage Notes
 
@@ -94,7 +102,7 @@ The entire application runs as a single FastAPI Web Service.
 
 ## 💡 Assumptions
 
-1.  **Item-Specific Averages:** Historical averages for price and stock are reliable proxies for missing future data.
-2.  **Lagged Features:** The demand for an item is influenced by its sales in the immediate past (1, 7, 30 days prior).
-3.  **Future Data Handling:** For predictions far beyond the historical data, all sales lag features are safely assumed to be zero, allowing the prediction to rely on item and seasonal averages.
-4.  **Data Quality:** The provided `vendor_daily_sales.csv` is assumed to be representative of the vendor's actual market environment.
+1.  **Item-Specific Averages:** Historical averages for price and stock are reliable proxies for missing future data.
+2.  **Lagged Features:** The demand for an item is influenced by its sales in the immediate past (1, 7, 30 days prior).
+3.  **Future Data Handling:** For predictions far beyond the historical data, all sales lag features are safely assumed to be zero, allowing the prediction to rely on item and seasonal averages.
+4.  **Data Quality:** The provided `vendor_daily_sales.csv` is assumed to be representative of the vendor's actual market environment.
