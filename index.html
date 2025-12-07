@@ -1,0 +1,98 @@
+<div class="container mt-5">
+    
+    <h2 class="mb-4">Demand & Sales Forecasting Tool</h2>
+    <p class="text-muted">Use this tool to determine **Unconstrained Demand** (how much to stock) or **Constrained Sales** (how much you will sell).</p>
+    
+    <form id="predictionForm">
+        <div class="row">
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="date" class="form-label">Prediction Date</label>
+                    <input type="date" class="form-control" id="date" name="date" required value="2026-01-01">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="item" class="form-label">Item</label>
+                    <select class="form-select" id="item" name="item" required>
+                        <option value="banana">Banana</option>
+                        <option value="spinach">Spinach</option>
+                        </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="market_footfall" class="form-label">Market Footfall (People)</label>
+                    <input type="number" class="form-control" id="market_footfall" name="market_footfall" placeholder="Leave blank to use historical average for the date." step="1">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                
+                <div class="mb-3">
+                    <label for="price_per_unit" class="form-label">Your Price (per unit)</label>
+                    <input type="number" class="form-control" id="price_per_unit" name="price_per_unit" placeholder="Leave blank to use historical item average." step="0.1">
+                </div>
+
+                <div class="mb-3">
+                    <label for="competitor_price_per_unit" class="form-label">Competitor Price</label>
+                    <input type="number" class="form-control" id="competitor_price_per_unit" name="competitor_price_per_unit" placeholder="Leave blank to use historical item average." step="0.1">
+                </div>
+
+                <div class="mb-3">
+                    <label for="stock" class="form-label text-primary">Available Stock (REQUIRED for constrained sales)</label>
+                    <input type="number" class="form-control" id="stock" name="stock" placeholder="Enter stock OR leave blank for stocking decision." step="1">
+                    <div class="form-text">
+                        **Two Modes:**
+                        <ul>
+                            <li>**Leave Blank / High Value:** Result is **Unconstrained Demand** (tells you how much to stock).</li>
+                            <li>**Enter Specific Value (e.g., 30):** Result is **Constrained Sales** (tells you how much you will sell).</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="promotion_type" class="form-label">Promotion Type</label>
+                    <select class="form-select" id="promotion_type" name="promotion_type">
+                        <option value="none">None</option>
+                        </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="supply_disruption" class="form-label">Supply Disruption</label>
+                    <select class="form-select" id="supply_disruption" name="supply_disruption">
+                        <option value="none">None</option>
+                        </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="event" class="form-label">Local Event</label>
+                    <select class="form-select" id="event" name="event">
+                        <option value="none">None</option>
+                        </select>
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg mt-3">Get Sales Prediction</button>
+    </form>
+
+    <hr class="mt-5">
+
+    <div id="result" class="mt-4 p-3 bg-light rounded shadow-sm" style="display: none;">
+        <h3>Prediction Result</h3>
+        <p>Item: <strong id="result-item"></strong> on <strong id="result-date"></strong></p>
+        <h4 class="text-success display-4">Predicted Units: <span id="result-units"></span></h4>
+        
+        <div id="interpretation" class="alert alert-info mt-3">
+            <strong id="interpretation-title"></strong>
+            <p id="interpretation-text"></p>
+        </div>
+    </div>
+</div>
