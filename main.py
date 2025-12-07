@@ -1,3 +1,4 @@
+from fastapi.responses import FileResponse
 import joblib
 import pandas as pd
 import numpy as np
@@ -316,11 +317,16 @@ async def load_assets():
         raise HTTPException(status_code=500, detail="Model or data loading failed.")
 
 
-@app.get("/")
-def read_root():
-    """Simple health check endpoint."""
-    return {"status": "ok", "model_loaded": model is not None, "data_available": historical_df is not None, "doy_averages_calculated": doy_averages_df is not None}
+# @app.get("/")
+# def read_root():
+#     """Simple health check endpoint."""
+#     return {"status": "ok", "model_loaded": model is not None, "data_available": historical_df is not None, "doy_averages_calculated": doy_averages_df is not None}
 
+
+@app.get("/", include_in_schema=False)
+def serve_index():
+    """Serves the main HTML page (the frontend dashboard)."""
+    return FileResponse("index.html")
 
 @app.post("/predict", response_model=PredictionOutput)
 def predict_demand(data: PredictionInput):

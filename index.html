@@ -1,9 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gromally Demand & Sales Forecast</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Optional: Add some custom styles */
+        .container {
+            max-width: 900px;
+        }
+        .form-text ul {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+        .form-text li {
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
 <div class="container mt-5">
     
-    <h2 class="mb-4">Demand & Sales Forecasting Tool</h2>
-    <p class="text-muted">Use this tool to determine **Unconstrained Demand** (how much to stock) or **Constrained Sales** (how much you will sell).</p>
+    <h2 class="mb-4 text-center">Gromally Demand & Sales Forecasting Tool</h2>
+    <p class="text-muted text-center">Determine **Unconstrained Demand** (for stocking) or **Constrained Sales** (for daily targets).</p>
     
-    <form id="predictionForm">
+    <form id="predictionForm" class="p-4 border rounded shadow-sm">
         <div class="row">
             
             <div class="col-md-6">
@@ -17,12 +40,28 @@
                     <select class="form-select" id="item" name="item" required>
                         <option value="banana">Banana</option>
                         <option value="spinach">Spinach</option>
-                        </select>
+                        <option value="apple">Apple</option>
+                        <option value="tomato">Tomato</option>
+                        <option value="onion">Onion</option>
+                        <option value="potato">Potato</option>
+                        <option value="mango">Mango</option>
+                        <option value="cucumber">Cucumber</option>
+                    </select>
                 </div>
 
                 <div class="mb-3">
                     <label for="market_footfall" class="form-label">Market Footfall (People)</label>
-                    <input type="number" class="form-control" id="market_footfall" name="market_footfall" placeholder="Leave blank to use historical average for the date." step="1">
+                    <input type="number" class="form-control" id="market_footfall" name="market_footfall" placeholder="Leave blank for historical average" step="1">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="promotion_type" class="form-label">Promotion Type</label>
+                    <select class="form-select" id="promotion_type" name="promotion_type">
+                        <option value="none">None</option>
+                        <option value="discount">Discount</option>
+                        <option value="bundle">Bundle</option>
+                        <option value="loyalty">Loyalty</option>
+                    </select>
                 </div>
             </div>
 
@@ -30,69 +69,191 @@
                 
                 <div class="mb-3">
                     <label for="price_per_unit" class="form-label">Your Price (per unit)</label>
-                    <input type="number" class="form-control" id="price_per_unit" name="price_per_unit" placeholder="Leave blank to use historical item average." step="0.1">
+                    <input type="number" class="form-control" id="price_per_unit" name="price_per_unit" placeholder="Leave blank for Item Average" step="0.1">
                 </div>
 
                 <div class="mb-3">
                     <label for="competitor_price_per_unit" class="form-label">Competitor Price</label>
-                    <input type="number" class="form-control" id="competitor_price_per_unit" name="competitor_price_per_unit" placeholder="Leave blank to use historical item average." step="0.1">
+                    <input type="number" class="form-control" id="competitor_price_per_unit" name="competitor_price_per_unit" placeholder="Leave blank for Item Average" step="0.1">
                 </div>
 
                 <div class="mb-3">
-                    <label for="stock" class="form-label text-primary">Available Stock (REQUIRED for constrained sales)</label>
+                    <label for="stock" class="form-label text-primary">Available Stock (Sales Cap)</label>
                     <input type="number" class="form-control" id="stock" name="stock" placeholder="Enter stock OR leave blank for stocking decision." step="1">
                     <div class="form-text">
-                        **Two Modes:**
-                        <ul>
-                            <li>**Leave Blank / High Value:** Result is **Unconstrained Demand** (tells you how much to stock).</li>
-                            <li>**Enter Specific Value (e.g., 30):** Result is **Constrained Sales** (tells you how much you will sell).</li>
-                        </ul>
+                        <span class="text-success fw-bold">How much should I stock?</span> Leave this field **blank** or set a high value.<br>
+                        <span class="text-danger fw-bold">How much will I sell?</span> Enter your actual available stock (e.g., 30).
                     </div>
                 </div>
-
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label for="promotion_type" class="form-label">Promotion Type</label>
-                    <select class="form-select" id="promotion_type" name="promotion_type">
-                        <option value="none">None</option>
-                        </select>
-                </div>
-            </div>
-            <div class="col-md-4">
+                
                 <div class="mb-3">
                     <label for="supply_disruption" class="form-label">Supply Disruption</label>
                     <select class="form-select" id="supply_disruption" name="supply_disruption">
                         <option value="none">None</option>
-                        </select>
+                        <option value="quality_issue">Quality Issue</option>
+                        <option value="supplier_shortage">Supplier Shortage</option>
+                        <option value="traffic_delay">Traffic Delay</option>
+                    </select>
                 </div>
             </div>
-            <div class="col-md-4">
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
                 <div class="mb-3">
                     <label for="event" class="form-label">Local Event</label>
                     <select class="form-select" id="event" name="event">
                         <option value="none">None</option>
-                        </select>
+                        <option value="festival">Festival</option>
+                        <option value="match_day">Match Day</option>
+                        <option value="local_fair">Local Fair</option>
+                    </select>
                 </div>
             </div>
         </div>
         
-        <button type="submit" class="btn btn-primary btn-lg mt-3">Get Sales Prediction</button>
+        <button type="submit" class="btn btn-primary btn-lg mt-3 w-100" id="submitBtn">
+            Get Sales Prediction
+        </button>
+        <div id="loadingIndicator" class="text-center text-primary mt-2" style="display: none;">
+            <div class="spinner-border spinner-border-sm" role="status"></div> Loading...
+        </div>
     </form>
 
     <hr class="mt-5">
 
-    <div id="result" class="mt-4 p-3 bg-light rounded shadow-sm" style="display: none;">
-        <h3>Prediction Result</h3>
-        <p>Item: <strong id="result-item"></strong> on <strong id="result-date"></strong></p>
-        <h4 class="text-success display-4">Predicted Units: <span id="result-units"></span></h4>
+    <div id="result" class="mt-4 p-4 bg-light rounded shadow-lg" style="display: none;">
+        <h3 class="text-center mb-4">Prediction Result</h3>
         
-        <div id="interpretation" class="alert alert-info mt-3">
+        <div class="row text-center">
+            <div class="col-12">
+                <h4 class="text-success display-4 fw-bold">
+                    <span id="result-units"></span> Units
+                </h4>
+                <p class="text-muted">
+                    Forecast for <strong id="result-item"></strong> on <strong id="result-date"></strong>
+                </p>
+            </div>
+        </div>
+
+        <div id="interpretation" class="alert mt-3">
             <strong id="interpretation-title"></strong>
             <p id="interpretation-text"></p>
         </div>
     </div>
+    
+    <div id="errorAlert" class="alert alert-danger mt-3" style="display: none;">
+        <strong>Error:</strong> <span id="error-message"></span>
+    </div>
+
 </div>
+
+<script>
+    // CRITICAL: Update this URL for deployment.
+    // For Render, this should be the public URL of your deployed FastAPI service.
+    // For local testing: http://127.0.0.1:8000/predict
+    // const API_URL = 'http://127.0.0.1:8000/predict';
+    const API_URL = '/predict';
+
+    const form = document.getElementById('predictionForm');
+    const resultDiv = document.getElementById('result');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorAlert = document.getElementById('errorAlert');
+    const errorMsgSpan = document.getElementById('error-message');
+
+    // Helper function to get form data as JSON, handling empty fields as null
+    function getFormData(form) {
+        const data = {};
+        const formData = new FormData(form);
+        
+        for (const [key, value] of formData.entries()) {
+            if (value === "" || value === undefined) {
+                data[key] = null;
+            } else if (['price_per_unit', 'competitor_price_per_unit', 'stock', 'market_footfall'].includes(key)) {
+                // Convert numerical fields to float/null
+                data[key] = value ? parseFloat(value) : null;
+            } else {
+                data[key] = value;
+            }
+        }
+        return data;
+    }
+
+    // Function to make a single API call
+    async function fetchPrediction(payload) {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `API returned status ${response.status}`);
+        }
+        return response.json();
+    }
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Reset state
+        resultDiv.style.display = 'none';
+        errorAlert.style.display = 'none';
+        loadingIndicator.style.display = 'block';
+        
+        const rawPayload = getFormData(form);
+        const userStockInput = rawPayload.stock; // Save the stock input for interpretation
+
+        let finalPrediction = null;
+        let unconstrainedDemand = null;
+
+        try {
+            // --- Step 1: Get Unconstrained Demand ---
+            // Create a payload where stock is explicitly null to find the model's demand forecast
+            const demandPayload = { ...rawPayload, stock: null };
+            
+            const demandResponse = await fetchPrediction(demandPayload);
+            unconstrainedDemand = demandResponse.predicted_units_sold;
+
+            // --- Step 2: Get Final Constrained Sales ---
+            // Use the original rawPayload (which contains userStockInput or null)
+            const salesResponse = await fetchPrediction(rawPayload);
+            finalPrediction = salesResponse;
+
+            // --- Step 3: Display Results ---
+            document.getElementById('result-item').textContent = finalPrediction.item;
+            document.getElementById('result-date').textContent = finalPrediction.prediction_date;
+            document.getElementById('result-units').textContent = finalPrediction.predicted_units_sold.toFixed(1);
+
+            // --- Step 4: Interpret the Result ---
+            const interpretationDiv = document.getElementById('interpretation');
+            const titleElement = document.getElementById('interpretation-title');
+            const textElement = document.getElementById('interpretation-text');
+
+            if (userStockInput === null || userStockInput === undefined || userStockInput > unconstrainedDemand) {
+                // Mode: Unconstrained Demand (or stock wasn't the cap)
+                titleElement.textContent = 'Mode: Unconstrained Demand Forecast (Stocking Decision)';
+                textElement.innerHTML = `The prediction of **${finalPrediction.predicted_units_sold.toFixed(1)} units** is the maximum expected customer demand. You should stock this amount (or slightly more) to avoid lost sales.`;
+                interpretationDiv.className = 'alert alert-success mt-3';
+            } else {
+                // Mode: Constrained Sales (Stock was the cap)
+                titleElement.textContent = 'Mode: Supply-Constrained Sales Forecast (Daily Target)';
+                textElement.innerHTML = `Demand was forecasted at **${unconstrainedDemand.toFixed(1)} units**, but your sales are capped at your input stock of **${userStockInput.toFixed(1)} units**. You are predicted to sell **${finalPrediction.predicted_units_sold.toFixed(1)} units**. This suggests a shortfall of ${(unconstrainedDemand - finalPrediction.predicted_units_sold).toFixed(1)} units.`;
+                interpretationDiv.className = 'alert alert-warning mt-3';
+            }
+            
+            resultDiv.style.display = 'block';
+
+        } catch (error) {
+            console.error('Prediction Failure:', error);
+            errorMsgSpan.textContent = error.message;
+            errorAlert.style.display = 'block';
+        } finally {
+            loadingIndicator.style.display = 'none';
+        }
+    });
+</script>
+
+</body>
+</html>
