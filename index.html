@@ -234,12 +234,12 @@
             if (userStockInput === null || userStockInput === undefined || userStockInput > unconstrainedDemand) {
                 // Mode: Unconstrained Demand (or stock wasn't the cap)
                 titleElement.textContent = 'Mode: Unconstrained Demand Forecast (Stocking Decision)';
-                textElement.innerHTML = `The prediction of **${finalPrediction.predicted_units_sold.toFixed(1)} units** is the maximum expected customer demand. You should stock this amount (or slightly more) to avoid lost sales.`;
+                textElement.innerHTML = `The prediction of ${finalPrediction.predicted_units_sold.toFixed(1)} units is the maximum expected customer demand. You should stock this amount (or slightly more) to avoid lost sales.`;
                 interpretationDiv.className = 'alert alert-success mt-3';
             } else {
                 // Mode: Constrained Sales (Stock was the cap)
                 titleElement.textContent = 'Mode: Supply-Constrained Sales Forecast (Daily Target)';
-                textElement.innerHTML = `Demand was forecasted at **${unconstrainedDemand.toFixed(1)} units**, but your sales are capped at your input stock of **${userStockInput.toFixed(1)} units**. You are predicted to sell **${finalPrediction.predicted_units_sold.toFixed(1)} units**. This suggests a shortfall of ${(unconstrainedDemand - finalPrediction.predicted_units_sold).toFixed(1)} units.`;
+                textElement.innerHTML = `Demand was forecasted at ${unconstrainedDemand.toFixed(1)} units, but your sales are capped at your input stock of ${userStockInput.toFixed(1)} units. You are predicted to sell ${finalPrediction.predicted_units_sold.toFixed(1)} units. This suggests a shortfall of ${(unconstrainedDemand - finalPrediction.predicted_units_sold).toFixed(1)} units.`;
                 interpretationDiv.className = 'alert alert-warning mt-3';
             }
             
