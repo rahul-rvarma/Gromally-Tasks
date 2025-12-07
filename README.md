@@ -79,7 +79,7 @@ The entire application runs as a single FastAPI Web Service, deployed on Render.
 ### Live Application Link
 You can access the live, interactive dashboard here:
 **[https://demand-prediction-57ke.onrender.com](https://demand-prediction-57ke.onrender.com)**
-
+ Its free hosting wait for 50 sec to load the app. 
 ### 1. Local Setup
 
 1.  **Install dependencies:** `pip install -r requirements.txt`
